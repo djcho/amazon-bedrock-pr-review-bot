@@ -1,12 +1,14 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 
 interface ReviewBotLambdaProps {
   role: iam.IRole;
   requestsLayer: lambda.ILayerVersion;
   networkxLayer: lambda.ILayerVersion;
+  vpc: ec2.IVpc;
 }
 
 export class ReviewBotLambda extends Construct {
@@ -74,7 +76,7 @@ export class ReviewBotLambda extends Construct {
       memorySize: 512
     });
 
-    // Post PR Comment Function
+    // Post PR Comment Function - VPC 내에서 실행
     this.functions.postPrComment = new lambda.Function(this, 'PostPRComment', {
       ...commonProps,
       functionName: 'PRR-PostPRCommentFunction',
@@ -83,8 +85,35 @@ export class ReviewBotLambda extends Construct {
       handler: 'index.lambda_handler',
       timeout: cdk.Duration.minutes(2),
       memorySize: 256,
-      layers: [props.requestsLayer]
+      layers: [props.requestsLayer],
+      // VPC 구성 추가
+      vpc: props.vpc,
+      // NAT Gateway가 있는 프라이빗 서브넷에 배치
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS
+      },
+      // 보안 그룹 설정 (HTTPS 아웃바운드 허용)
+      securityGroups: [
+        new ec2.SecurityGroup(this, 'PostPRCommentSecurityGroup', {
+          vpc: props.vpc,
+          description: 'Security group for PR Comment Lambda',
+          allowAllOutbound: true
+        })
+      ]
     });
+
+    // Lambda에 추가 권한 부여 (VPC 관련)
+    props.role.addToPrincipalPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'ec2:CreateNetworkInterface',
+        'ec2:DescribeNetworkInterfaces',
+        'ec2:DeleteNetworkInterface',
+        'ec2:AssignPrivateIpAddresses',
+        'ec2:UnassignPrivateIpAddresses'
+      ],
+      resources: ['*']
+    }));
 
     // Send Slack Notification Function
     this.functions.sendSlackNotification = new lambda.Function(this, 'SendSlackNotification', {

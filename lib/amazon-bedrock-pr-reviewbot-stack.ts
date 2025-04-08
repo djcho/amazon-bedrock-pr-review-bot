@@ -8,6 +8,9 @@ import { LambdaLayers } from './constructs/lambda-layer';
 import { ReviewBotLambda } from './constructs/lambda';
 import { ReviewBotApi } from './constructs/api-gateway';
 import { ReviewBotStepFunctions } from './constructs/step-functions';
+import { NetworkConstruct } from './constructs/network';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 
 export class AmazonBedrockPrReviewbotStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps & ReviewBotProps) {
@@ -30,7 +33,8 @@ export class AmazonBedrockPrReviewbotStack extends cdk.Stack {
     const lambdas = new ReviewBotLambda(this, 'ReviewBotLambda', {
       role: lambdaRole,
       requestsLayer: layers.requestsLayer,
-      networkxLayer: layers.networkxLayer
+      networkxLayer: layers.networkxLayer,
+      vpc: new NetworkConstruct(this, 'Network').vpc
     });
 
     // Create State Machine Role
