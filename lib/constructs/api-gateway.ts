@@ -108,7 +108,7 @@ export class ReviewBotApi extends Construct {
           #set($body = $input.body)
           #set($cleaned = $body.replace("'", ""))
           {
-            "input": "{\"body\": $util.escapeJavaScript($cleaned)}",
+            "input": "{\\\"body\\\": $util.escapeJavaScript($cleaned)}",
             "stateMachineArn": "${props.stateMachine.stateMachineArn}"
           }`
         },
