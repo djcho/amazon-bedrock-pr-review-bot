@@ -104,10 +104,13 @@ export class ReviewBotApi extends Construct {
       options: {
         credentialsRole: apiRole,
         requestTemplates: {
-          'application/json': JSON.stringify({
-            input: "{\"body\": $util.escapeJavaScript($input.json('$'))}",
-            stateMachineArn: props.stateMachine.stateMachineArn
-          })
+          'application/json': `
+          #set($body = $input.body)
+          #set($cleaned = $body.replace("'", ""))
+          {
+            "input": "{\"body\": $util.escapeJavaScript($cleaned)}",
+            "stateMachineArn": "${props.stateMachine.stateMachineArn}"
+          }`
         },
         integrationResponses: [
           {
