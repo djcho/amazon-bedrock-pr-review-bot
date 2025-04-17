@@ -51,7 +51,7 @@ class GitLabCommentPoster(CommentPoster):
         }
         
         encoded_repo = requests.utils.quote(pr_details.repository, safe='')
-        url = f"{self.credentials['gitlab_url']}/api/v4/projects/{encoded_repo}/merge_requests/{pr_details.pr_id}/notes"
+        url = f"https://git.jiransoft.co.kr/api/v4/projects/{encoded_repo}/merge_requests/{pr_details.pr_id}/notes"
         
         try:
             response = requests.post(
