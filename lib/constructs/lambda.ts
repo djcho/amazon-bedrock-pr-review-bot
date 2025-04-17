@@ -50,7 +50,18 @@ export class ReviewBotLambda extends Construct {
       handler: 'index.lambda_handler',
       timeout: cdk.Duration.minutes(5),
       memorySize: 512,
-      layers: [props.requestsLayer, props.networkxLayer]
+      layers: [props.requestsLayer, props.networkxLayer],
+      vpc: props.vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS
+      },
+      securityGroups: [
+        new ec2.SecurityGroup(this, 'SplitPRSecurityGroup', {
+          vpc: props.vpc,
+          description: 'Security group for Split PR Lambda',
+          allowAllOutbound: true
+        })
+      ]
     });
 
     // Process Chunk Function

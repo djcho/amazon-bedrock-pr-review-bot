@@ -97,7 +97,8 @@ class PRChunkSplitter:
     def _get_gitlab_diff(self, repository: str, pr_id: str) -> str:
         """GitLab PR diff 가져오기"""
         headers = {"PRIVATE-TOKEN": self.credentials['access_token']}
-        url = f"https://gitlab.com/api/v4/projects/{requests.utils.quote(repository, safe='')}/merge_requests/{pr_id}/changes"
+        url = f"https://git.jiransoft.co.kr/api/v4/projects/{requests.utils.quote(repository, safe='')}/merge_requests/{pr_id}/changes"
+        #url = f"https://grafana.s1esp.com/api/v1/login"
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         return self._format_gitlab_diff(response.json()['changes'])
